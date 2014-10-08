@@ -1,0 +1,8 @@
+{
+	"name": "sudoku",
+	"description": "A simple sudoku solver",
+	"copyright": "Copyright © 2014, magicant",
+	"authors": ["magicant"],
+	"dependencies": {
+	}
+}
