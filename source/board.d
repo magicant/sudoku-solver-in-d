@@ -120,4 +120,146 @@ unittest {
     assert(b.values[0][1] == 0);
 }
 
+struct PossibilitySet {
+
+private:
+
+    uint numbers;
+
+    invariant {
+        enum mask = (1u << N) - 1u;
+        assert((numbers & mask) == numbers);
+    }
+
+    this(uint numbers) pure {
+        this.numbers = numbers;
+    }
+
+public:
+
+    bool opIndex(Number n) const pure
+    in {
+        assert(n < N);
+    }
+    body {
+        return (this.numbers & (1u << n)) != 0;
+    }
+
+    size_t count() const pure @property {
+        uint x = ((numbers & 0b010101010) >>> 1) + (numbers & 0b101010101);
+        x = ((x & 0b011001100) >>> 2) + (x & 0b100110011);
+        x = (x >>> 8) + (x >>> 4) + x;
+        return x & 0b000001111;
+    }
+
+    bool empty() const pure @property {
+        return count == 0;
+    }
+
+    bool unique() const pure @property {
+        return count == 1;
+    }
+
+    Number uniqueValue() const pure @property
+    in {
+        assert(unique);
+    }
+    body {
+        foreach (n; 0 .. N)
+            if (this[n])
+                return n;
+        assert(false);
+    }
+
+    PossibilitySet add(Number n) const pure
+    in {
+        assert(n < N);
+    }
+    body {
+        return PossibilitySet(this.numbers | (1u << n));
+    }
+
+    PossibilitySet remove(Number n) const pure
+    in {
+        assert(n < N);
+    }
+    body {
+        return PossibilitySet(this.numbers & ~(1u << n));
+    }
+
+    static PossibilitySet full() pure @property {
+        return PossibilitySet(0b111111111);
+    }
+
+}
+
+unittest {
+    enum set235 = PossibilitySet().add(2).add(3).add(5);
+
+    assert(!set235[0]);
+    assert(!set235[1]);
+    assert(set235[2]);
+    assert(set235[3]);
+    assert(!set235[4]);
+    assert(set235[5]);
+    assert(!set235[6]);
+    assert(!set235[7]);
+    assert(!set235[8]);
+
+    assert(!PossibilitySet()[2]);
+    assert(!PossibilitySet()[5]);
+    assert(PossibilitySet.full[0]);
+    assert(PossibilitySet.full[8]);
+
+    assert(PossibilitySet().count == 0);
+    assert(PossibilitySet().add(0).count == 1);
+    assert(PossibilitySet().add(1).count == 1);
+    assert(PossibilitySet().add(2).count == 1);
+    assert(PossibilitySet().add(3).count == 1);
+    assert(PossibilitySet().add(4).count == 1);
+    assert(PossibilitySet().add(5).count == 1);
+    assert(PossibilitySet().add(6).count == 1);
+    assert(PossibilitySet().add(7).count == 1);
+    assert(PossibilitySet().add(8).count == 1);
+    assert(set235.count == 3);
+    assert(PossibilitySet.full.count == N);
+
+    assert(PossibilitySet().empty);
+    assert(!PossibilitySet().add(0).empty);
+    assert(!PossibilitySet().add(8).empty);
+    assert(!set235.empty);
+    assert(!PossibilitySet.full.empty);
+
+    assert(!PossibilitySet().unique);
+    assert(PossibilitySet().add(0).unique);
+    assert(PossibilitySet().add(1).unique);
+    assert(PossibilitySet().add(2).unique);
+    assert(PossibilitySet().add(3).unique);
+    assert(PossibilitySet().add(4).unique);
+    assert(PossibilitySet().add(5).unique);
+    assert(PossibilitySet().add(6).unique);
+    assert(PossibilitySet().add(7).unique);
+    assert(PossibilitySet().add(8).unique);
+    assert(!set235.unique);
+    assert(!PossibilitySet.full.unique);
+
+    assert(set235.add(2) == set235);
+    assert(set235.add(5) == set235);
+    assert(set235.remove(0) == set235);
+    assert(set235.remove(7) == set235);
+
+    assert(set235.remove(2) == PossibilitySet().add(3).add(5));
+    assert(set235.remove(5) == PossibilitySet().add(2).add(3));
+
+    assert(PossibilitySet().add(0).uniqueValue == 0);
+    assert(PossibilitySet().add(1).uniqueValue == 1);
+    assert(PossibilitySet().add(2).uniqueValue == 2);
+    assert(PossibilitySet().add(3).uniqueValue == 3);
+    assert(PossibilitySet().add(4).uniqueValue == 4);
+    assert(PossibilitySet().add(5).uniqueValue == 5);
+    assert(PossibilitySet().add(6).uniqueValue == 6);
+    assert(PossibilitySet().add(7).uniqueValue == 7);
+    assert(PossibilitySet().add(8).uniqueValue == 8);
+}
+
 // vim: set et sw=4:
