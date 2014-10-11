@@ -123,4 +123,33 @@ void repeatNonAssumptionProcess(Board!PossibilitySet board) {
     } while (board != oldBoard);
 }
 
+Position positionWithLeastPossibilities(in Board!PossibilitySet board) {
+    Position position;
+    size_t count = N;
+    foreach (p; wholeArea) {
+        auto c = board[p].count;
+        if (count > c) {
+            count = c;
+            position = p;
+        }
+    }
+    return position;
+}
+
+unittest {
+    auto board = new Board!PossibilitySet();
+    auto position = Position(7, 2);
+    foreach (Position p; wholeArea)
+        board[p] = PossibilitySet.full.remove(p.i).remove(p.j);
+    board[position] = PossibilitySet().add(4).add(5).add(8);
+    assert(positionWithLeastPossibilities(board) == position);
+}
+unittest {
+    auto board = new Board!PossibilitySet();
+    foreach (Position p; wholeArea)
+        board[p] = PossibilitySet().add(p.i).add(p.j);
+    auto position = positionWithLeastPossibilities(board);
+    assert(position.i == position.j);
+}
+
 // vim: set et sw=4:
