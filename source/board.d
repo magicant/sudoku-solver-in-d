@@ -69,6 +69,42 @@ struct Area {
         assert(!area.contains(Position(1, 2)));
     }
 
+    int opApply(int delegate(Position p) d) const {
+        foreach (i; topLeft.i .. bottomRight.i)
+            foreach (j; topLeft.j .. bottomRight.j)
+                if (auto result = d(Position(i, j)))
+                    return result;
+        return 0;
+    }
+
+    unittest {
+        enum topLeft = Position(3, 5);
+
+        // empty area
+        foreach (p; Area(topLeft, topLeft))
+            assert(false);
+        foreach (p; Area(topLeft, topLeft.down()))
+            assert(false);
+        foreach (p; Area(topLeft, topLeft.right()))
+            assert(false);
+
+        // single position area
+        foreach (p; Area(topLeft, topLeft.down().right()))
+            assert(p == topLeft);
+
+        // multiple position area
+        Position[] ps;
+        foreach (p; Area(topLeft, topLeft.down(3).right(2)))
+            ps ~= p;
+        assert(ps.length == 3 * 2);
+        assert(ps[0] == topLeft);
+        assert(ps[1] == topLeft.right());
+        assert(ps[2] == topLeft.down());
+        assert(ps[3] == topLeft.down().right());
+        assert(ps[4] == topLeft.down(2));
+        assert(ps[5] == topLeft.down(2).right());
+    }
+
 }
 
 enum wholeArea = Area(Position(0, 0), Position(N, N));
