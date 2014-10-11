@@ -1,3 +1,5 @@
+import std.string : format;
+
 alias Number = size_t;
 
 enum Number Nsub = 3;
@@ -38,6 +40,15 @@ struct Position {
     unittest {
         assert(Position(0, 0).right() == Position(0, 1));
         assert(Position(1, 2).right(3) == Position(1, 5));
+    }
+
+    string toString() const pure {
+        return format("(%u, %u)", cast(uint) i, cast(uint) j);
+    }
+
+    unittest {
+        assert(Position(2, 5).toString() == "(2, 5)");
+        assert(Position(8, 3).toString() == "(8, 3)");
     }
 
 }
@@ -121,6 +132,10 @@ Area columnArea(in Number j) nothrow pure {
     return Area(Position(0, j), Position(N, j + 1));
 }
 
+Area columnArea(in Position p) nothrow pure {
+    return columnArea(p.j);
+}
+
 Area blockArea(in Position p) nothrow pure {
     const topLeft = Position(p.i / Nsub * Nsub, p.j / Nsub * Nsub);
     const bottomRight = topLeft.down(3).right(3);
@@ -146,14 +161,59 @@ class Board(T) {
 
     T[N][N] values;
 
-}
+    unittest {
+        auto b = new Board!int();
+        b.values[0][0] = 3;
+        assert(b.values[0][0] == 3);
+        assert(b.values[1][0] == 0);
+        assert(b.values[0][1] == 0);
+    }
 
-unittest {
-    auto b = new Board!int();
-    b.values[0][0] = 3;
-    assert(b.values[0][0] == 3);
-    assert(b.values[1][0] == 0);
-    assert(b.values[0][1] == 0);
+    ref inout(T) opIndex(Position p) inout nothrow pure {
+        return values[p.i][p.j];
+    }
+
+    bool opEquals(in Board!T that) const {
+        if (!that)
+            return false;
+        foreach (Position p; wholeArea)
+            if (this[p] != that[p])
+                return false;
+        return true;
+    }
+
+    override bool opEquals(Object o) const {
+        return opEquals(cast(Board!T) o);
+    }
+
+    unittest {
+        assert(new Board!bool() == new Board!bool());
+    }
+    unittest {
+        auto a = new Board!int();
+        auto b = new Board!int();
+        auto p = Position(2, 3);
+        assert(a == b);
+        a[p] = 23;
+        assert(a != b);
+        b[p] = 23;
+        assert(a == b);
+    }
+
+    Board!T dup() const pure @property {
+        auto board = new Board!T();
+        board.values = this.values;
+        return board;
+    }
+
+    unittest {
+        auto a = new Board!bool();
+        auto b = a.dup;
+        assert(a == b);
+        a[Position()] = true;
+        assert(a != b);
+    }
+
 }
 
 struct PossibilitySet {
