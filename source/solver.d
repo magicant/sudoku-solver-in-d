@@ -114,4 +114,13 @@ void fixUniquePossibilities(Board!PossibilitySet board) {
                     board, blockArea(Position(n * Nsub, m * Nsub)));
 }
 
+void repeatNonAssumptionProcess(Board!PossibilitySet board) {
+    auto oldBoard = new Board!PossibilitySet();
+    do {
+        oldBoard.values = board.values;
+        eliminateImpossibilities(board);
+        fixUniquePossibilities(board);
+    } while (board != oldBoard);
+}
+
 // vim: set et sw=4:
