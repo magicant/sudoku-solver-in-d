@@ -7,7 +7,7 @@ struct Position {
 
     Number i, j;
 
-    bool isValid() const pure {
+    bool isValid() const nothrow pure {
         return i < N && j < N;
     }
 
@@ -22,7 +22,7 @@ struct Position {
         assert(!Position(9, 9).isValid());
     }
 
-    Position down(in Number n = 1) const pure {
+    Position down(in Number n = 1) const nothrow pure {
         return Position(i + n, j);
     }
 
@@ -31,7 +31,7 @@ struct Position {
         assert(Position(1, 2).down(3) == Position(4, 2));
     }
 
-    Position right(in Number n = 1) const pure {
+    Position right(in Number n = 1) const nothrow pure {
         return Position(i, j + n);
     }
 
@@ -46,7 +46,7 @@ struct Area {
 
     Position topLeft, bottomRight;
 
-    bool contains(in Position p) const pure {
+    bool contains(in Position p) const nothrow pure {
         return topLeft.i <= p.i && topLeft.j <= p.j &&
             p.i < bottomRight.i && p.j < bottomRight.j;
     }
@@ -109,19 +109,19 @@ struct Area {
 
 enum wholeArea = Area(Position(0, 0), Position(N, N));
 
-Area rowArea(in Number i) pure {
+Area rowArea(in Number i) nothrow pure {
     return Area(Position(i, 0), Position(i + 1, N));
 }
 
-Area rowArea(in Position p) pure {
+Area rowArea(in Position p) nothrow pure {
     return rowArea(p.i);
 }
 
-Area columnArea(in Number j) pure {
+Area columnArea(in Number j) nothrow pure {
     return Area(Position(0, j), Position(N, j + 1));
 }
 
-Area blockArea(in Position p) pure {
+Area blockArea(in Position p) nothrow pure {
     const topLeft = Position(p.i / Nsub * Nsub, p.j / Nsub * Nsub);
     const bottomRight = topLeft.down(3).right(3);
     return Area(topLeft, bottomRight);
@@ -167,13 +167,13 @@ private:
         assert((numbers & mask) == numbers);
     }
 
-    this(uint numbers) pure {
+    this(uint numbers) nothrow pure {
         this.numbers = numbers;
     }
 
 public:
 
-    bool opIndex(Number n) const pure
+    bool opIndex(Number n) const nothrow pure
     in {
         assert(n < N);
     }
@@ -181,22 +181,22 @@ public:
         return (this.numbers & (1u << n)) != 0;
     }
 
-    size_t count() const pure @property {
+    size_t count() const nothrow pure @property {
         uint x = ((numbers & 0b010101010) >>> 1) + (numbers & 0b101010101);
         x = ((x & 0b011001100) >>> 2) + (x & 0b100110011);
         x = (x >>> 8) + (x >>> 4) + x;
         return x & 0b000001111;
     }
 
-    bool empty() const pure @property {
+    bool empty() const nothrow pure @property {
         return count == 0;
     }
 
-    bool unique() const pure @property {
+    bool unique() const nothrow pure @property {
         return count == 1;
     }
 
-    Number uniqueValue() const pure @property
+    Number uniqueValue() const nothrow pure @property
     in {
         assert(unique);
     }
@@ -207,7 +207,7 @@ public:
         assert(false);
     }
 
-    PossibilitySet add(Number n) const pure
+    PossibilitySet add(Number n) const nothrow pure
     in {
         assert(n < N);
     }
@@ -215,7 +215,7 @@ public:
         return PossibilitySet(this.numbers | (1u << n));
     }
 
-    PossibilitySet remove(Number n) const pure
+    PossibilitySet remove(Number n) const nothrow pure
     in {
         assert(n < N);
     }
@@ -223,7 +223,7 @@ public:
         return PossibilitySet(this.numbers & ~(1u << n));
     }
 
-    static PossibilitySet full() pure @property {
+    static PossibilitySet full() nothrow pure @property {
         return PossibilitySet(0b111111111);
     }
 
