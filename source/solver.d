@@ -169,4 +169,48 @@ void splitPossibilities(
     }
 }
 
+enum BoardState {
+    solved,
+    insolvable,
+    unsolved,
+}
+
+/**
+ * Determines the board state on the basis of possibility counts. This function
+ * does not detect inconsistent possibilities.
+ */
+BoardState classify(in Board!PossibilitySet board) {
+    bool foundNonUniquePossibility = false;
+    foreach (Position p; wholeArea) {
+        switch (board[p].count) {
+            case 0:
+                return BoardState.insolvable;
+            case 1:
+                break;
+            default:
+                foundNonUniquePossibility = true;
+                break;
+        }
+    }
+    return foundNonUniquePossibility ? BoardState.unsolved : BoardState.solved;
+}
+
+unittest {
+    auto board = new Board!PossibilitySet();
+    assert(classify(board) == BoardState.insolvable);
+
+    foreach (Position p; wholeArea)
+        board[p] = PossibilitySet().add(3);
+    // This is not actually a valid solution, but classified as solved.
+    assert(classify(board) == BoardState.solved);
+
+    board[Position(3, 5)] = PossibilitySet();
+    // The board is insolvable if there is any empty possibility set.
+    assert(classify(board) == BoardState.insolvable);
+
+    board[Position(3, 5)] = PossibilitySet().add(3).add(7);
+    // The board is unsolved if there is any non-unique possibility.
+    assert(classify(board) == BoardState.unsolved);
+}
+
 // vim: set et sw=4:
