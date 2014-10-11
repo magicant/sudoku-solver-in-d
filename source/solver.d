@@ -152,4 +152,21 @@ unittest {
     assert(position.i == position.j);
 }
 
+/**
+ * Finds the position that has the least number of possible numbers and calls
+ * the given delegate passing the board with the possibility set at the found
+ * position replaced with a unique possibility set.
+ */
+void splitPossibilities(
+        in Board!PossibilitySet board, void delegate(Board!PossibilitySet) d) {
+    auto p = positionWithLeastPossibilities(board);
+    foreach (n; 0 .. N) {
+        if (board[p][n]) {
+            auto newBoard = board.dup;
+            newBoard[p] = PossibilitySet().add(n);
+            d(newBoard);
+        }
+    }
+}
+
 // vim: set et sw=4:
