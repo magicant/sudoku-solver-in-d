@@ -1,5 +1,6 @@
 import std.conv : to;
-import board : Board, Number, Position, PossibilitySet;
+import board : N, Nsub;
+import board : Area, Board, Number, Position, PossibilitySet;
 import board : blockArea, columnArea, rowArea, wholeArea;
 
 void eliminateImpossibilities(Board!PossibilitySet board, Position p) {
@@ -54,6 +55,63 @@ unittest {
 void eliminateImpossibilities(Board!PossibilitySet board) {
     foreach (Position p; wholeArea)
         eliminateImpossibilities(board, p);
+}
+
+/**
+ * Counts the number of positions where a number can occur in the given area.
+ * Makes the possibility unique if the number can occur at exactly one
+ * position.
+ */
+void fixUniquePossibilities(Board!PossibilitySet board, in Area area) {
+    struct Possibility {
+        Position position;
+        size_t count;
+    }
+
+    Possibility[N] possibilities;
+
+    foreach (Position p; area) {
+        foreach (n; 0 .. N) {
+            if (board[p][n]) {
+                possibilities[n].position = p;
+                ++possibilities[n].count;
+            }
+        }
+    }
+
+    foreach (n, ref possibility; possibilities)
+        if (possibility.count == 1)
+            board[possibility.position] = PossibilitySet().add(n);
+}
+
+unittest {
+    auto board = new Board!PossibilitySet();
+    auto position = Position(7, 4);
+    auto area = rowArea(position);
+    auto n = 2;
+    foreach (Position p; wholeArea)
+        board[p] = PossibilitySet.full;
+    foreach (Position p; area)
+        board[p] = board[p].remove(n);
+    board[position] = PossibilitySet.full;
+
+    auto expectedBoard = board.dup;
+    expectedBoard[position] = PossibilitySet().add(n);
+
+    fixUniquePossibilities(board, area);
+    assert(board == expectedBoard);
+}
+
+void fixUniquePossibilities(Board!PossibilitySet board) {
+    foreach (n; 0 .. N) {
+        fixUniquePossibilities(board, rowArea(n));
+        fixUniquePossibilities(board, columnArea(n));
+    }
+
+    foreach (n; 0 .. Nsub)
+        foreach (m; 0 .. Nsub)
+            fixUniquePossibilities(
+                    board, blockArea(Position(n * Nsub, m * Nsub)));
 }
 
 // vim: set et sw=4:
