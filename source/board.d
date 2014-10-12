@@ -223,7 +223,7 @@ private:
 
     uint numbers;
 
-    invariant {
+    invariant() {
         enum mask = (1u << N) - 1u;
         assert((numbers & mask) == numbers);
     }
