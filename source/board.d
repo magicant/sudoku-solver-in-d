@@ -1,3 +1,4 @@
+import std.conv : to;
 import std.string : format;
 
 alias Number = size_t;
@@ -356,6 +357,24 @@ unittest {
     assert(PossibilitySet().add(6).uniqueValue == 6);
     assert(PossibilitySet().add(7).uniqueValue == 7);
     assert(PossibilitySet().add(8).uniqueValue == 8);
+}
+
+Board!U convert(U, T)(const Board!T from, U delegate(in T) d) {
+    auto to = new Board!U();
+    foreach (Position p; wholeArea)
+        to[p] = d(from[p]);
+    return to;
+}
+
+unittest {
+    auto from = new Board!int();
+    auto p1 = Position(0, 3), p2 = Position(2, 4), p3 = Position(5, 1);
+    from[p1] = 1;
+    from[p2] = 1;
+    from[p3] = 1;
+    auto result = from.convert((in int n) => n != 0);
+    foreach (Position p; wholeArea)
+        assert(result[p] == (p == p1 || p == p2 || p == p3), to!string(p));
 }
 
 // vim: set et sw=4:

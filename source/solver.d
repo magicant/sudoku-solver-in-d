@@ -1,7 +1,7 @@
 import std.conv : to;
 import board : N, Nsub;
 import board : Area, Board, Number, Position, PossibilitySet;
-import board : blockArea, columnArea, rowArea, wholeArea;
+import board : blockArea, columnArea, convert, rowArea, wholeArea;
 
 void eliminateImpossibilities(Board!PossibilitySet board, Position p) {
     if (!board[p].unique)
@@ -211,6 +211,35 @@ unittest {
     board[Position(3, 5)] = PossibilitySet().add(3).add(7);
     // The board is unsolved if there is any non-unique possibility.
     assert(classify(board) == BoardState.unsolved);
+}
+
+/** Calls the given delegate for each solved board. */
+void iterateSolutions(
+        Board!PossibilitySet board, void delegate(Board!PossibilitySet) d) {
+    repeatNonAssumptionProcess(board);
+
+    final switch (classify(board)) {
+        case BoardState.solved:
+            d(board);
+            return;
+        case BoardState.insolvable:
+            return;
+        case BoardState.unsolved:
+            splitPossibilities(
+                    board, (Board!PossibilitySet b) => iterateSolutions(b, d));
+            return;
+    }
+}
+
+/** Calls the given delegate for each solved board. */
+void iterateSolutions(in Board!Number board, void delegate(Board!Number) d) {
+    auto board2 = board.convert(
+            (in Number n) =>
+            n < N ? PossibilitySet().add(n) : PossibilitySet.full);
+    iterateSolutions(
+            board2,
+            (Board!PossibilitySet solution) =>
+                d(solution.convert((in PossibilitySet ps) => ps.uniqueValue)));
 }
 
 // vim: set et sw=4:
