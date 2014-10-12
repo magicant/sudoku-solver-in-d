@@ -43,7 +43,7 @@ struct Position {
         assert(Position(1, 2).right(3) == Position(1, 5));
     }
 
-    string toString() const pure {
+    string toString() const {
         return format("(%u, %u)", cast(uint) i, cast(uint) j);
     }
 
