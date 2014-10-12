@@ -123,12 +123,16 @@ void repeatNonAssumptionProcess(Board!PossibilitySet board) {
     } while (board != oldBoard);
 }
 
-Position positionWithLeastPossibilities(in Board!PossibilitySet board) {
+Position positionWithLeastPossibilities(in Board!PossibilitySet board)
+out(position) {
+    assert(board[position].count > 1);
+}
+body {
     Position position;
     size_t count = N;
     foreach (p; wholeArea) {
         auto c = board[p].count;
-        if (count > c) {
+        if (count > c && c > 1) {
             count = c;
             position = p;
         }
@@ -147,7 +151,7 @@ unittest {
 unittest {
     auto board = new Board!PossibilitySet();
     foreach (Position p; wholeArea)
-        board[p] = PossibilitySet().add(p.i).add(p.j);
+        board[p] = PossibilitySet().add(p.i).add(p.j).add((p.j + 1) % N);
     auto position = positionWithLeastPossibilities(board);
     assert(position.i == position.j);
 }
